@@ -6,14 +6,21 @@ from results.models import attempt, student_answer
 
 
 @login_required
-def quiz_view(request, quiz_id):
+def quiz_view(request, quiz_id, level=None):
     quiz = get_object_or_404(Quiz, id=quiz_id, is_active=True)
-    questions = quiz.questions.all()
+
+    if level and level in ["Beginner", "Intermediate", "Advanced"]:
+        questions = quiz.questions.filter(level=level)
+    else:
+        questions = quiz.questions.all()
+
     question_count = questions.count()
     progress_percentage = 100 // question_count if question_count > 0 else 25
 
     current_attempt = attempt.objects.create(quiz=quiz, user=request.user)
     request.session["attempt_id"] = current_attempt.id
+    if level:
+        request.session["quiz_level"] = level
 
     return render(
         request,
@@ -23,6 +30,8 @@ def quiz_view(request, quiz_id):
             "questions": questions,
             "progress_percentage": progress_percentage,
             "attempt_id": current_attempt.id,
+            "quiz_level": level,
+            "timeLimit": 10,
         },
     )
 
@@ -31,16 +40,23 @@ def quiz_view(request, quiz_id):
 def quiz_submit(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
     attempt_id = request.session.get("attempt_id")
+    quiz_level = request.session.get("quiz_level")
 
     if not attempt_id:
         return redirect("home")
 
     current_attempt = get_object_or_404(attempt, id=attempt_id, user=request.user)
 
+    if quiz_level and quiz_level in ["Beginner", "Intermediate", "Advanced"]:
+        questions = quiz.questions.filter(level=quiz_level)
+    else:
+        questions = quiz.questions.all()
+
     score = 0
     total_marks = 0
+    incorrect_answers = []
 
-    for question in quiz.questions.all():
+    for question in questions:
         total_marks += question.marks
         selected_choice_id = request.POST.get(f"question_{question.id}")
 
@@ -58,6 +74,19 @@ def quiz_submit(request, quiz_id):
 
             if selected_choice.is_correct:
                 score += question.marks
+            else:
+                if quiz.is_special:
+                    correct_choice = question.choices.filter(is_correct=True).first()
+                    incorrect_answers.append(
+                        {
+                            "question_text": question.text,
+                            "user_answer": selected_choice.text,
+                            "correct_answer": correct_choice.text
+                            if correct_choice
+                            else "",
+                            "level": question.level,
+                        }
+                    )
 
     current_attempt.completed = True
     current_attempt.save()
@@ -66,18 +95,29 @@ def quiz_submit(request, quiz_id):
 
     if "attempt_id" in request.session:
         del request.session["attempt_id"]
+    if "quiz_level" in request.session:
+        del request.session["quiz_level"]
 
-    return render(
-        request,
-        "result.html",
-        {
-            "quiz": quiz,
-            "score": score,
-            "total": total_marks,
-            "percentage": round(percentage, 2),
-            "attempt": current_attempt,
-        },
-    )
+    context = {
+        "quiz": quiz,
+        "score": score,
+        "total": total_marks,
+        "percentage": round(percentage, 2),
+        "attempt": current_attempt,
+        "quiz_level": quiz_level,
+    }
+
+    if quiz.is_special:
+        request.session["incorrect_answers"] = incorrect_answers
+        context["show_incorrect_btn"] = True
+
+    return render(request, "result.html", context)
+
+
+@login_required
+def get_incorrect_answers(request):
+    incorrect_answers = request.session.get("incorrect_answers", [])
+    return JsonResponse({"incorrect_answers": incorrect_answers})
 
 
 @login_required

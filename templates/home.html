@@ -41,6 +41,30 @@
         
         <div class="quiz-grid">
             {% for quiz in quizzes %}
+            {% if quiz.is_special and quiz.title == 'Python Job Test' %}
+            <div class="quiz-card special-quiz">
+                <span class="quiz-icon">💼</span>
+                <h3>{{ quiz.title }}</h3>
+                <p>{{ quiz.description|default:"Test your Python knowledge" }}</p>
+                <div class="quiz-sections">
+                    <a href="{% url 'quiz_start_level' quiz.id 'Beginner' %}" class="section-btn beginner">
+                        <span class="section-icon">🌱</span>
+                        <span class="section-name">Beginner</span>
+                        <span class="section-count">{{ quiz.questions.count|add:"-40" }} Qs</span>
+                    </a>
+                    <a href="{% url 'quiz_start_level' quiz.id 'Intermediate' %}" class="section-btn intermediate">
+                        <span class="section-icon">🌿</span>
+                        <span class="section-name">Intermediate</span>
+                        <span class="section-count">20 Qs</span>
+                    </a>
+                    <a href="{% url 'quiz_start_level' quiz.id 'Advanced' %}" class="section-btn advanced">
+                        <span class="section-icon">🌳</span>
+                        <span class="section-name">Advanced</span>
+                        <span class="section-count">20 Qs</span>
+                    </a>
+                </div>
+            </div>
+            {% else %}
             <div class="quiz-card" onclick="location.href='{% url 'quiz_start' quiz.id %}'">
                 <span class="quiz-icon">🧠</span>
                 <h3>{{ quiz.title }}</h3>
@@ -50,6 +74,7 @@
                     <span class="quiz-time">⏱️ 15 min</span>
                 </div>
             </div>
+            {% endif %}
             {% empty %}
             <div class="quiz-card">
                 <span class="quiz-icon">📚</span>
@@ -67,5 +92,9 @@
     {% endif %}
     
     <script src="{% static 'js/main.js' %}"></script>
+    
+    <footer class="footer">
+        <p>© 2026 Created by Jisan Mahamud</p>
+    </footer>
 </body>
 </html>

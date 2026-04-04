@@ -13,14 +13,14 @@
     <button id="darkModeToggle">☀️</button>
     
     <header class="exam-header">
-        <h1 class="exam-title">🧠 {{ quiz.title }}</h1>
+        <h1 class="exam-title">{% if quiz.is_special %}{% if quiz_level == 'Beginner' %}🌱{% elif quiz_level == 'Intermediate' %}🌿{% elif quiz_level == 'Advanced' %}🌳{% else %}💼{% endif %}{% else %}🧠{% endif %} {{ quiz.title }}{% if quiz_level %} - {{ quiz_level }}{% endif %}</h1>
     </header>
     
     <div class="timer-floating">
         <span class="timer-icon">⏱️</span>
         <div class="timer-content">
             <div class="timer-text">Time Left</div>
-            <div class="timer-value" id="timerDisplay">15:00</div>
+            <div class="timer-value" id="timerDisplay">{{ timeLimit|default:10|stringformat:"02d" }}:00</div>
         </div>
     </div>
     
@@ -34,7 +34,9 @@
             
             {% for question in quiz.questions.all %}
             <div class="question-container" id="question-{{ forloop.counter }}">
-                <span class="question-number">Question {{ forloop.counter }} of {{ quiz.questions.count }}</span>
+                <span class="question-number">Question {{ forloop.counter }} of {{ quiz.questions.count }}
+                {% if quiz.is_special and question.level %}<span class="question-level-badge {{ question.level|lower }}">{{ question.level }}</span>{% endif %}
+                </span>
                 <h2 class="question-text">{{ question.text }}</h2>
                 
                 <div class="choices-container">
@@ -74,8 +76,8 @@
     
     <script src="{% static 'js/main.js' %}"></script>
     <script>
-        const questionCount = {{ quiz.questions.count }};
-        const timeLimit = 15;
+        const questionCount = {{ questions.count }};
+        const timeLimit = 10;
         let currentQuestion = 1;
         let answeredQuestions = new Set();
         
@@ -194,5 +196,9 @@
             let timerInterval = setInterval(updateTimer, 1000);
         }
     </script>
+    
+    <footer class="footer">
+        <p>© 2026 Created by Jisan Mahamud</p>
+    </footer>
 </body>
 </html>
