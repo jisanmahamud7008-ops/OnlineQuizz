@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+    <title>Online Quiz - Home</title>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <button id="darkModeToggle">☀️</button>
+    
+    <header class="header">
+        <div class="logo">
+            <span>🧠</span>
+            QuizMaster
+        </div>
+    </header>
+    
+    <main class="main-content">
+        <section class="hero-section">
+            {% if current_user.is_authenticated %}
+            <div class="user-greeting">
+                <span class="greeting-avatar">{{ current_user.username|make_list|first|upper }}</span>
+                <span class="greeting-text">Welcome back, {{ current_user.username }}!</span>
+            </div>
+            {% endif %}
+            
+            <h1>Test Your Knowledge</h1>
+            <p>Choose a quiz and challenge yourself!</p>
+            
+            {% if not current_user.is_authenticated %}
+            <div class="auth-buttons">
+                <a href="{% url 'login' %}" class="btn-auth btn-login">Login</a>
+                <a href="{% url 'register' %}" class="btn-auth btn-register">Register</a>
+            </div>
+            {% endif %}
+        </section>
+        
+        <div class="quiz-grid">
+            {% for quiz in quizzes %}
+            <div class="quiz-card" onclick="location.href='{% url 'quiz_start' quiz.id %}'">
+                <span class="quiz-icon">🧠</span>
+                <h3>{{ quiz.title }}</h3>
+                <p>{{ quiz.description|default:"Test your knowledge" }}</p>
+                <div class="quiz-meta">
+                    <span class="quiz-questions">📝 {{ quiz.questions.count }} Questions</span>
+                    <span class="quiz-time">⏱️ 15 min</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="quiz-card">
+                <span class="quiz-icon">📚</span>
+                <h3>No Quizzes Available</h3>
+                <p>Check back later for new quizzes</p>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+    
+    {% if current_user.is_authenticated %}
+    <div class="bottom-logout">
+        <a href="{% url 'logout' %}" class="logout-bottom-btn">Logout</a>
+    </div>
+    {% endif %}
+    
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

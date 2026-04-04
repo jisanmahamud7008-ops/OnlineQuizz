@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+    <title>Quiz Result - Online Quiz</title>
+    <link rel="stylesheet" href="{% static 'css/result.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <button id="darkModeToggle">☀️</button>
+    
+    <header class="result-header">
+        <h1>Quiz Complete!</h1>
+        <p class="quiz-title">{{ quiz.title }}</p>
+    </header>
+    
+    <main class="result-main">
+        <div class="result-card">
+            <div class="score-display">
+                <div class="score-circle">
+                    <span class="score-percentage">{{ percentage }}%</span>
+                </div>
+            </div>
+            
+            <div class="score-details">
+                <div class="detail-item">
+                    <span class="detail-label">Score</span>
+                    <span class="detail-value">{{ score }} / {{ total }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Total Questions</span>
+                    <span class="detail-value">{{ total }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Correct Answers</span>
+                    <span class="detail-value">{{ score }}</span>
+                </div>
+            </div>
+            
+            <div class="result-message">
+                {% if percentage >= 80 %}
+                <p class="message-excellent">Excellent! You did great!</p>
+                {% elif percentage >= 60 %}
+                <p class="message-good">Good job! Keep practicing!</p>
+                {% elif percentage >= 40 %}
+                <p class="message-average">Not bad, but there's room for improvement.</p>
+                {% else %}
+                <p class="message-poor">Keep learning! You'll do better next time!</p>
+                {% endif %}
+            </div>
+            
+            <div class="result-actions">
+                <a href="{% url 'home' %}" class="btn-result btn-home">Back to Home</a>
+                <a href="{% url 'quiz_start' quiz.id %}" class="btn-result btn-retry">Try Again</a>
+            </div>
+        </div>
+    </main>
+    
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/result.js' %}"></script>
+</body>
+</html>

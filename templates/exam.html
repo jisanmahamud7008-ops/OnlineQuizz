@@ -1,0 +1,198 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+    <title>{{ quiz.title }} - Online Quiz</title>
+    <link rel="stylesheet" href="{% static 'css/exam.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <button id="darkModeToggle">☀️</button>
+    
+    <header class="exam-header">
+        <h1 class="exam-title">🧠 {{ quiz.title }}</h1>
+    </header>
+    
+    <div class="timer-floating">
+        <span class="timer-icon">⏱️</span>
+        <div class="timer-content">
+            <div class="timer-text">Time Left</div>
+            <div class="timer-value" id="timerDisplay">15:00</div>
+        </div>
+    </div>
+    
+    <main class="exam-main">
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress_percentage|default:25 }}%;"></div>
+        </div>
+        
+        <form method="post" action="{% url 'quiz_submit' quiz.id %}">
+            {% csrf_token %}
+            
+            {% for question in quiz.questions.all %}
+            <div class="question-container" id="question-{{ forloop.counter }}">
+                <span class="question-number">Question {{ forloop.counter }} of {{ quiz.questions.count }}</span>
+                <h2 class="question-text">{{ question.text }}</h2>
+                
+                <div class="choices-container">
+                    {% for choice in question.choices.all %}
+                    <button type="button" class="choice-btn" onclick="selectChoice(this, {{ forloop.parentloop.counter }}, '{{ choice.id }}')">
+                        <span class="choice-letter">{% if forloop.counter == 1 %}A{% elif forloop.counter == 2 %}B{% elif forloop.counter == 3 %}C{% else %}D{% endif %}</span>
+                        <span class="choice-text">{{ choice.text }}</span>
+                    </button>
+                    <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" id="choice_{{ choice.id }}" style="display: none;">
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            
+            <div class="navigation-buttons">
+                <button type="button" class="nav-btn prev">
+                    ← Previous
+                </button>
+                <button type="button" class="nav-btn next">
+                    Next →
+                </button>
+            </div>
+            
+            <div class="question-indicators">
+                {% for question in quiz.questions.all %}
+                <span class="question-dot" onclick="goToQuestion({{ forloop.counter }})">{{ forloop.counter }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="submit-section" style="text-align: center; margin-top: 20px;">
+                <button type="submit" class="nav-btn submit">
+                    Submit Quiz
+                </button>
+            </div>
+        </form>
+    </main>
+    
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        const questionCount = {{ quiz.questions.count }};
+        const timeLimit = 15;
+        let currentQuestion = 1;
+        let answeredQuestions = new Set();
+        
+        function selectChoice(btn, questionNum, choiceId) {
+            const container = document.querySelector(`#question-${questionNum}`);
+            container.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            const radio = document.getElementById(`choice_${choiceId}`);
+            radio.checked = true;
+            answeredQuestions.add(questionNum);
+            updateQuestionIndicators();
+            
+            if (questionNum < questionCount) {
+                setTimeout(() => {
+                    goToQuestion(questionNum + 1);
+                }, 300);
+            }
+        }
+        
+        function goToQuestion(num) {
+            if (num >= 1 && num <= questionCount) {
+                currentQuestion = num;
+                const question = document.getElementById(`question-${num}`);
+                if (question) {
+                    question.scrollIntoView({ behavior: 'smooth' });
+                    updateProgressBar();
+                    updateNavButtons();
+                }
+            }
+        }
+        
+        function updateProgressBar() {
+            const progress = (currentQuestion / questionCount) * 100;
+            document.querySelector('.progress-fill').style.width = progress + '%';
+        }
+        
+        function updateNavButtons() {
+            document.querySelectorAll('.question-dot').forEach((dot, index) => {
+                dot.classList.remove('current');
+                if (index + 1 === currentQuestion) {
+                    dot.classList.add('current');
+                }
+            });
+        }
+        
+        function updateQuestionIndicators() {
+            document.querySelectorAll('.question-dot').forEach((dot, index) => {
+                const qNum = index + 1;
+                dot.classList.remove('answered', 'current');
+                if (answeredQuestions.has(qNum)) {
+                    dot.classList.add('answered');
+                }
+                if (qNum === currentQuestion) {
+                    dot.classList.add('current');
+                }
+            });
+            
+            const answeredCount = answeredQuestions.size;
+            const progressPercent = (answeredCount / questionCount) * 100;
+            document.querySelector('.progress-fill').style.width = progressPercent + '%';
+        }
+        
+        function nextQuestion() {
+            if (currentQuestion < questionCount) {
+                goToQuestion(currentQuestion + 1);
+            }
+        }
+        
+        function prevQuestion() {
+            if (currentQuestion > 1) {
+                goToQuestion(currentQuestion - 1);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.nav-btn.next').addEventListener('click', nextQuestion);
+            document.querySelector('.nav-btn.prev').addEventListener('click', prevQuestion);
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                    nextQuestion();
+                } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                    prevQuestion();
+                }
+            });
+            
+            updateQuestionIndicators();
+        });
+        
+        // Timer functionality
+        const timerDisplay = document.getElementById("timerDisplay");
+        if (timerDisplay) {
+            let timeLeft = timeLimit * 60;
+            
+            function updateTimer() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 300 && timeLeft > 60) {
+                    timerDisplay.classList.add("warning");
+                } else if (timeLeft <= 60) {
+                    timerDisplay.classList.remove("warning");
+                    timerDisplay.classList.add("danger");
+                }
+                
+                if (timeLeft <= 0) {
+                    alert("Time's up!");
+                    clearInterval(timerInterval);
+                    document.querySelector('form').submit();
+                }
+                
+                timeLeft--;
+            }
+            
+            let timerInterval = setInterval(updateTimer, 1000);
+        }
+    </script>
+</body>
+</html>
