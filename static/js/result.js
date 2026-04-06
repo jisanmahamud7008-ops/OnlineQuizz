@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const scorePercentage = {{ percentage }};
+    const scorePercentage = parseFloat({{ percentage }}) || 0;
     const resultCard = document.querySelector('.result-card');
     
     if (scorePercentage >= 80) {
@@ -29,8 +29,8 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(animateScore, 800);
     
     const numbers = document.querySelectorAll('.detail-value');
-    const score = {{ score }};
-    const total = {{ total }};
+    const score = parseFloat({{ score }}) || 0;
+    const total = parseFloat({{ total }}) || 0;
     
     function animateNumber(element, target) {
         let current = 0;

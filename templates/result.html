@@ -56,8 +56,10 @@
             <div class="special-quiz-info">
                 {% if quiz_level %}
                 <span class="special-badge {{ quiz_level|lower }}">{{ quiz_level }} Level</span>
-                {% else %}
+                {% elif quiz.title == 'Python Job Test' %}
                 <span class="special-badge">Python Job Test</span>
+                {% else %}
+                <span class="special-badge">JavaScript Job Test</span>
                 {% endif %}
             </div>
             <button id="showIncorrectBtn" class="btn-result btn-incorrect">See Incorrect Answers</button>
@@ -103,7 +105,6 @@
                                     <span class="question-level ${item.level.toLowerCase()}">${item.level}</span>
                                 </div>
                                 <p class="question-text">${item.question_text}</p>
-                                <p class="your-answer">Your Answer: <span class="wrong">${item.user_answer}</span></p>
                                 <p class="correct-answer">Correct Answer: <span class="correct">${item.correct_answer}</span></p>
                             `;
                             list.appendChild(div);

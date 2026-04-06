@@ -29,12 +29,15 @@
             <div class="progress-fill" style="width: {{ progress_percentage|default:25 }}%;"></div>
         </div>
         
-        <form method="post" action="{% url 'quiz_submit' quiz.id %}">
+        <form method="post" action="{% if quiz_level %}{% url 'quiz_submit_level' quiz.id quiz_level %}{% else %}{% url 'quiz_submit' quiz.id %}{% endif %}" id="quizForm">
             {% csrf_token %}
+            {% if quiz_level %}
+            <input type="hidden" name="quiz_level" value="{{ quiz_level }}">
+            {% endif %}
             
-            {% for question in quiz.questions.all %}
+            {% for question in questions %}
             <div class="question-container" id="question-{{ forloop.counter }}">
-                <span class="question-number">Question {{ forloop.counter }} of {{ quiz.questions.count }}
+                <span class="question-number">Question {{ forloop.counter }} of {{ questions.count }}
                 {% if quiz.is_special and question.level %}<span class="question-level-badge {{ question.level|lower }}">{{ question.level }}</span>{% endif %}
                 </span>
                 <h2 class="question-text">{{ question.text }}</h2>
@@ -61,7 +64,7 @@
             </div>
             
             <div class="question-indicators">
-                {% for question in quiz.questions.all %}
+                {% for question in questions %}
                 <span class="question-dot" onclick="goToQuestion({{ forloop.counter }})">{{ forloop.counter }}</span>
                 {% endfor %}
             </div>
@@ -195,6 +198,26 @@
             
             let timerInterval = setInterval(updateTimer, 1000);
         }
+        
+        document.getElementById('quizForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            }).then(response => {
+                return response.text();
+            }).then(html => {
+                document.open();
+                document.write(html);
+                document.close();
+            }).catch(error => {
+                console.error('Error:', error);
+                form.submit();
+            });
+        });
     </script>
     
     <footer class="footer">

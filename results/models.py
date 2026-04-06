@@ -30,4 +30,3 @@ class student_answer(models.Model):
 # Create your models here.
 
 
-# Create your models here.

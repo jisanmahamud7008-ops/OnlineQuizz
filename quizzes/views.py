@@ -37,10 +37,12 @@ def quiz_view(request, quiz_id, level=None):
 
 
 @login_required
-def quiz_submit(request, quiz_id):
+def quiz_submit(request, quiz_id, level=None):
     quiz = get_object_or_404(Quiz, id=quiz_id)
     attempt_id = request.session.get("attempt_id")
-    quiz_level = request.session.get("quiz_level")
+    quiz_level = (
+        level or request.POST.get("quiz_level") or request.session.get("quiz_level")
+    )
 
     if not attempt_id:
         return redirect("home")
@@ -48,9 +50,9 @@ def quiz_submit(request, quiz_id):
     current_attempt = get_object_or_404(attempt, id=attempt_id, user=request.user)
 
     if quiz_level and quiz_level in ["Beginner", "Intermediate", "Advanced"]:
-        questions = quiz.questions.filter(level=quiz_level)
+        questions = list(quiz.questions.filter(level=quiz_level))
     else:
-        questions = quiz.questions.all()
+        questions = list(quiz.questions.all())
 
     score = 0
     total_marks = 0
@@ -80,7 +82,6 @@ def quiz_submit(request, quiz_id):
                     incorrect_answers.append(
                         {
                             "question_text": question.text,
-                            "user_answer": selected_choice.text,
                             "correct_answer": correct_choice.text
                             if correct_choice
                             else "",
@@ -102,6 +103,7 @@ def quiz_submit(request, quiz_id):
         "quiz": quiz,
         "score": score,
         "total": total_marks,
+        "total_questions": len(questions),
         "percentage": round(percentage, 2),
         "attempt": current_attempt,
         "quiz_level": quiz_level,
