@@ -11,6 +11,7 @@
 </head>
 <body>
     <button id="darkModeToggle">☀️</button>
+    <a href="{% url 'home' %}" class="home-icon" title="Go to Home">🏠</a>
     
     <header class="exam-header">
         <h1 class="exam-title">{% if quiz.is_special %}{% if quiz_level == 'Beginner' %}🌱{% elif quiz_level == 'Intermediate' %}🌿{% elif quiz_level == 'Advanced' %}🌳{% else %}💼{% endif %}{% else %}🧠{% endif %} {{ quiz.title }}{% if quiz_level %} - {{ quiz_level }}{% endif %}</h1>
