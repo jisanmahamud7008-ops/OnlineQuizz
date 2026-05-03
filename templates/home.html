@@ -42,6 +42,36 @@
         <div class="quiz-grid">
             {% for quiz in quizzes %}
             {% if quiz.is_special and quiz.title == 'Python Job Test' %}
+            {% if not current_user.is_authenticated %}
+            <div class="quiz-card special-quiz locked" onclick="openModal()">
+                <div class="quiz-card-content">
+                    <span class="quiz-icon">💼</span>
+                    <h3>{{ quiz.title }}</h3>
+                    <p>{{ quiz.description|default:"Test your Python knowledge" }}</p>
+                    <div class="quiz-sections">
+                        <span class="section-btn beginner">
+                            <span class="section-icon">🌱</span>
+                            <span class="section-name">Beginner</span>
+                            <span class="section-count">20 Qs</span>
+                        </span>
+                        <span class="section-btn intermediate">
+                            <span class="section-icon">🌿</span>
+                            <span class="section-name">Intermediate</span>
+                            <span class="section-count">20 Qs</span>
+                        </span>
+                        <span class="section-btn advanced">
+                            <span class="section-icon">🌳</span>
+                            <span class="section-name">Advanced</span>
+                            <span class="section-count">20 Qs</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="quiz-lock-overlay">
+                    <span class="lock-icon">🔒</span>
+                    <span class="lock-hint">Login Required</span>
+                </div>
+            </div>
+            {% else %}
             <div class="quiz-card special-quiz">
                 <span class="quiz-icon">💼</span>
                 <h3>{{ quiz.title }}</h3>
@@ -64,7 +94,38 @@
                     </a>
                 </div>
             </div>
+            {% endif %}
             {% elif quiz.is_special and quiz.title == 'JavaScript Job Test' %}
+            {% if not current_user.is_authenticated %}
+            <div class="quiz-card special-quiz locked" onclick="openModal()">
+                <div class="quiz-card-content">
+                    <span class="quiz-icon">💼</span>
+                    <h3>{{ quiz.title }}</h3>
+                    <p>{{ quiz.description|default:"Test your JavaScript knowledge" }}</p>
+                    <div class="quiz-sections">
+                        <span class="section-btn beginner">
+                            <span class="section-icon">🌱</span>
+                            <span class="section-name">Beginner</span>
+                            <span class="section-count">20 Qs</span>
+                        </span>
+                        <span class="section-btn intermediate">
+                            <span class="section-icon">🌿</span>
+                            <span class="section-name">Intermediate</span>
+                            <span class="section-count">20 Qs</span>
+                        </span>
+                        <span class="section-btn advanced">
+                            <span class="section-icon">🌳</span>
+                            <span class="section-name">Advanced</span>
+                            <span class="section-count">20 Qs</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="quiz-lock-overlay">
+                    <span class="lock-icon">🔒</span>
+                    <span class="lock-hint">Login Required</span>
+                </div>
+            </div>
+            {% else %}
             <div class="quiz-card special-quiz">
                 <span class="quiz-icon">💼</span>
                 <h3>{{ quiz.title }}</h3>
@@ -87,6 +148,24 @@
                     </a>
                 </div>
             </div>
+            {% endif %}
+            {% else %}
+            {% if not current_user.is_authenticated %}
+            <div class="quiz-card locked" onclick="openModal()">
+                <div class="quiz-card-content">
+                    <span class="quiz-icon">🧠</span>
+                    <h3>{{ quiz.title }}</h3>
+                    <p>{{ quiz.description|default:"Test your knowledge" }}</p>
+                    <div class="quiz-meta">
+                        <span class="quiz-questions">📝 {{ quiz.questions.count }} Questions</span>
+                        <span class="quiz-time">⏱️ 15 min</span>
+                    </div>
+                </div>
+                <div class="quiz-lock-overlay">
+                    <span class="lock-icon">🔒</span>
+                    <span class="lock-hint">Login Required</span>
+                </div>
+            </div>
             {% else %}
             <div class="quiz-card" onclick="location.href='{% url 'quiz_start' quiz.id %}'">
                 <span class="quiz-icon">🧠</span>
@@ -97,6 +176,7 @@
                     <span class="quiz-time">⏱️ 15 min</span>
                 </div>
             </div>
+            {% endif %}
             {% endif %}
             {% empty %}
             <div class="quiz-card">
@@ -115,6 +195,22 @@
     {% endif %}
     
     <script src="{% static 'js/main.js' %}"></script>
+    
+    <div id="loginModal" class="modal">
+        <div class="modal-overlay" onclick="closeModal()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div class="modal-body">
+                <div class="modal-icon">🔒</div>
+                <h3>Sorry, please login or register first</h3>
+                <p>Create an account or login to access this quiz</p>
+                <div class="modal-actions">
+                    <a href="{% url 'login' %}" class="modal-btn modal-btn-login">Login</a>
+                    <a href="{% url 'register' %}" class="modal-btn modal-btn-register">Register</a>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <footer class="footer">
         <p>© 2026 Created by Jisan Mahamud</p>

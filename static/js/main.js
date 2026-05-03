@@ -31,4 +31,19 @@ document.addEventListener("DOMContentLoaded", function () {
             }, 150);
         });
     });
+
+    // Modal functions
+    function openModal() {
+        const modal = document.getElementById("loginModal");
+        document.body.classList.add("modal-open");
+        modal.classList.add("active");
+    }
+
+    function closeModal() {
+        const modal = document.getElementById("loginModal");
+        modal.classList.remove("active");
+        setTimeout(() => {
+            document.body.classList.remove("modal-open");
+        }, 250);
+    }
 });
